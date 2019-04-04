@@ -6,36 +6,83 @@
 2. 我需要在上传时根据不同文件类型设置不同的 `max-age`。COSCMD 无法满足需求。
 
 ## 命令行
+全局安装：
 ```
-npm install -g cosup
+npm i -g cosup
+```
+
+或者安装在项目中：
+```
+npm i cosup
+```
+然后在 `package.json` 中加入 script:
+```json
+{
+  "scripts": {
+    "deploy": "cosup -u xxx -p xxx -r ap-shanghai -b test-123456 dist /"
+  }
+}
 ```
 
 ```
-cosup <src> <dest>
+cosup [src] [dest]
 
-Upload files in <src> directory to <dest> directory on COS.
-
-Positionals:
-  src   The source directory on your machine
-  dest  The destination directory on COS
+Upload files in [src] directory to [dest] directory on COS.
 
 Options:
   --help, -h        Show help                                          [boolean]
   --version, -v     Show version number                                [boolean]
-  --config, -c      Path to JSON config file              [number] [default: 10]
+  --config, -c      Path to JSON config file
   --secret-id, -u   SecretId                                          [required]
   --secret-key, -p  SecretKey                                         [required]
   --region, -r      Region                                            [required]
   --bucket, -b      Bucket                                            [required]
-  --max-age, -e     Cache-Control: maxage header
+  --max-age, -e     Cache-Control: max-age header
                                 [array] [default: -e "*.html" 10 -e "*" 2592000]
   --ignore, -i      Don' upload the files which matches the glob pattern. e.g.
                     -i "*.sh" -i ".gitignore"                            [array]
-  --parallel, -c    Parallel upload limit                 [number] [default: 10]
+  --parallel, -n    Parallel upload limit                 [number] [default: 10]
   --log, -l         Output logs to console             [boolean] [default: true]
 
 Examples:
   cosup -u xxx -p xxx -r ap-shanghai -b test-123456 dist /
+```
+
+### 环境变量
+参数可以通过 `COS_*` 前缀的环境变量传入，比如：
+```
+COS_SECRET_ID=xxx COS_SECRET_KEY=xxx COS_REGION=ap-shanghai COS_BUCKET=test-12345 cosup dist / 
+```
+在 CI 工具中配置环境变量，可以方便地作为参数传入。
+
+### 配置文件
+参数还可以通过 `json` 配置文件传入。比如：
+
+```
+cosup -c config.json
+```
+
+`config.json`:
+```json
+{
+  "secretId": "xxx",
+  "secretKey": "xxx",
+  "region": "ap-shanghai",
+  "bucket": "test-12345",
+  "src": "dist",
+  "dest": "/",
+  "maxAge": ["*.html", 10, "*", 2592000],
+  "ignore": ["*.sh", ".gitignore"]
+}
+```
+
+### 参数优先级
+命令行参数 > 环境变量 > 配置文件
+
+### Windows 注意事项
+在 Windows 的 msys 命令行中（比如 git bash），路径会被转换导致上传的文件路径不对，需要设置环境变量 `MSYS_NO_PATHCONV=1`。
+```
+MSYS_NO_PATHCONV=1 cosup -c config.json dist /
 ```
 
 ## 作为模块使用

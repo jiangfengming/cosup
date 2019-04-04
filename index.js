@@ -1,7 +1,7 @@
 const COS = require('cos-nodejs-sdk-v5')
 const readdirp = require('readdirp')
 const minimatch = require('minimatch')
-const path = require('path')
+const url = require('url')
 const fs = require('fs')
 const progress = require('cli-progress')
 
@@ -18,6 +18,10 @@ module.exports = function({
   log
 }) {
   return new Promise((resolve, reject) => {
+    if (!dest.endsWith('/')) {
+      dest += '/'
+    }
+
     const filter = ignore && ignore.length ?
       file => !ignore.some(pattern => minimatch(file.path, pattern, { matchBase: true }))
       : undefined
@@ -72,7 +76,7 @@ module.exports = function({
           cos.putObject({
             Region: region,
             Bucket: bucket,
-            Key: path.join(dest, file.path),
+            Key: url.resolve(dest, file.path),
             Body: fs.createReadStream(file.fullPath),
             ContentLength: file.stat.size,
             CacheControl,
