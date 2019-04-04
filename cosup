@@ -39,6 +39,13 @@ const argv = require('yargs')
       hidden: true,
       demandOption: true
     })
+    .check(argv => {
+      if (/^[a-z]:\//i.test(argv.dest)) {
+        throw `Invalid dest "${argv.dest}". You need to set the environment variable "MSYS_NO_PATHCONV=1" in Git Bash/MSYS2 on Windows.`
+      }
+
+      return true
+    })
     .option('max-age', {
       alias: 'e',
       describe: 'Cache-Control: max-age header',

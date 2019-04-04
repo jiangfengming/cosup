@@ -14,6 +14,8 @@
     "url": "git+https://github.com/jiangfengming/cosup.git"
   },
   "keywords": [
+    "腾讯云",
+    "对象存储",
     "cos"
   ],
   "author": "Jiang Fengming",

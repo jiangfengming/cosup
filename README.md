@@ -80,7 +80,7 @@ cosup -c config.json
 命令行参数 > 环境变量 > 配置文件
 
 ### Windows 注意事项
-在 Windows 的 msys 命令行中（比如 git bash），路径会被转换导致上传的文件路径不对，需要设置环境变量 `MSYS_NO_PATHCONV=1`。
+在 Windows 的 Git Bash/MSYS2 命令行中，路径会被转换导致上传的文件路径不对，需要设置环境变量 `MSYS_NO_PATHCONV=1`。
 ```
 MSYS_NO_PATHCONV=1 cosup -c config.json dist /
 ```
