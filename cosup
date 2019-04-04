@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+
+const cosup = require('.')
+const argv = require('yargs')
+  .command('$0 <src> <dest>', 'Upload files in <src> directory to <dest> directory on COS.', args => args
+    .option('secret-id', {
+      alias: 'u',
+      describe: 'SecretId',
+      demandOption: true
+    })
+    .option('secret-key', {
+      alias: 'p',
+      describe: 'SecretKey',
+      demandOption: true
+    })
+    .option('region', {
+      alias: 'r',
+      describe: 'Region',
+      demandOption: true
+    })
+    .option('bucket', {
+      alias: 'b',
+      describe: 'Bucket',
+      demandOption: true
+    })
+    .option('max-age', {
+      alias: 'e',
+      describe: 'Cache-Control: maxage header',
+      type: 'array',
+      nargs: 2
+    })
+    .default('max-age', ['*.html', 10, '*', 2592000], '-e "*.html" 10 -e "*" 2592000')
+    .option('ignore', {
+      alias: 'i',
+      describe: 'Don\' upload the files which matches the glob pattern. e.g. -i "*.sh" -i ".gitignore"',
+      type: 'array'
+    })
+    .option('parallel', {
+      alias: 'c',
+      describe: 'Parallel upload limit',
+      type: 'number',
+      default: 10
+    })
+    .option('log', {
+      alias: 'l',
+      describe: 'Output logs to console',
+      type: 'boolean',
+      default: true
+    })
+    .positional('src', {
+      describe: 'The source directory on your machine'
+    })
+    .positional('dest', {
+      describe: 'The destination directory on COS'
+    })
+    .example('cosup -u xxx -p xxx -r ap-shanghai -b test-123456 dist /')
+  )
+  .env('COSUP')
+  .config()
+  .alias('config', 'c')
+  .alias('version', 'v')
+  .alias('help', 'h')
+  .argv
+
+cosup(argv).catch(() => {
+  process.exitCode = 1
+})
