@@ -3,9 +3,10 @@ const readdirp = require('readdirp')
 const minimatch = require('minimatch')
 const url = require('url')
 const fs = require('fs')
+const path = require('path')
 const progress = require('cli-progress')
 
-module.exports = function({
+module.exports = async({
   src,
   dest,
   secretId,
@@ -16,97 +17,113 @@ module.exports = function({
   ignore,
   parallel = 10,
   log
-}) {
-  return new Promise((resolve, reject) => {
-    if (!dest.endsWith('/')) {
-      dest += '/'
-    }
+}) => {
+  if (!dest.endsWith('/')) {
+    dest += '/'
+  }
 
-    const filter = ignore && ignore.length ?
-      file => !ignore.some(pattern => minimatch(file.path, pattern, { matchBase: true }))
+  let files
+
+  const stats = fs.statSync(src)
+
+  if (stats.isDirectory()) {
+    const filter = ignore && ignore.length
+      ? file => !ignore.some(pattern => minimatch(file.path, pattern, { matchBase: true }))
       : undefined
 
-    readdirp({ root: src, fileFilter: filter, directoryFilter: filter }, (e, { files }) => {
-      if (e) {
-        return reject(e)
+    files = await readdirp.promise(src, { fileFilter: filter, directoryFilter: filter, alwaysStat: true })
+  } else if (stats.isFile()) {
+    files = [{
+      path: path.basename(src),
+      fullPath: path.resolve(src),
+      basename: path.basename(src),
+      stats
+    }]
+  }
+
+  const cos = new COS({
+    SecretId: secretId,
+    SecretKey: secretKey,
+    FileParallelLimit: parallel
+  })
+
+  const errors = []
+  const tasks = []
+
+  for (const file of files) {
+    let CacheControl
+
+    if (maxAge) {
+      for (let i = 0; i < maxAge.length; i += 2) {
+        const pattern = maxAge[i]
+
+        if (minimatch(file.path, pattern, { matchBase: true })) {
+          const age = parseInt(maxAge[i + 1])
+
+          if (!isNaN(age)) {
+            CacheControl = 'max-age=' + age
+          }
+
+          break
+        }
       }
+    }
 
-      const cos = new COS({
-        SecretId: secretId,
-        SecretKey: secretKey,
-        FileParallelLimit: parallel
-      })
+    let onProgress, bar
 
-      const errors = []
-      const tasks = []
+    if (log) {
+      bar = new progress.Bar(
+        {
+          format: file.path + ' [{bar}] {percentage}% | {value}/{total}',
+          clearOnComplete: true
+        },
+        progress.Presets.shades_classic
+      )
 
-      for (const file of files) {
-        let CacheControl
+      bar.start(file.stats.size, 0)
 
-        if (maxAge) {
-          for (let i = 0; i < maxAge.length; i += 2) {
-            const pattern = maxAge[i]
-            if (minimatch(file.path, pattern, { matchBase: true })) {
-              const age = parseInt(maxAge[i + 1])
-              if (!isNaN(age)) {
-                CacheControl = 'max-age=' + age
-              }
-              break
-            }
-          }
-        }
+      // { loaded, total, speed, percent }
+      onProgress = p => p && bar.update(p.loaded)
+    }
 
-        let onProgress, bar
-        if (log) {
-          bar = new progress.Bar({
-            format: file.path + ' [{bar}] {percentage}% | {value}/{total}'
-          }, progress.Presets.shades_classic)
-
-          bar.start(file.stat.size, 0)
-
-          // { loaded, total, speed, percent }
-          onProgress = p => {
-            if (p) {
-              bar.update(p.loaded)
-            }
-          }
-        }
-
-        tasks.push(new Promise((resolve, reject) => {
-          cos.putObject({
-            Region: region,
-            Bucket: bucket,
-            Key: url.resolve(dest, file.path),
-            Body: fs.createReadStream(file.fullPath),
-            ContentLength: file.stat.size,
-            CacheControl,
-            onProgress
-          }, e => {
-            if (e) {
-              bar.update(0)
-              bar.stop()
-              reject(e)
-            } else {
-              bar.stop()
-              resolve()
-            }
-          })
-        }).catch(error => {
-          errors.push({ file: file.path, error })
-
+    tasks.push(new Promise((resolve, reject) => {
+      cos.putObject({
+        Region: region,
+        Bucket: bucket,
+        Key: url.resolve(dest, file.path),
+        Body: fs.createReadStream(file.fullPath),
+        ContentLength: file.stats.size,
+        CacheControl,
+        onProgress
+      }, e => {
+        if (e) {
           if (log) {
-            console.error(file.path, 'upload failed.', error) // eslint-disable-line no-console
+            bar.update(0)
+            bar.stop()
           }
-        }))
-      }
 
-      Promise.all(tasks).then(() => {
-        if (errors.length) {
-          reject(errors)
+          reject(e)
         } else {
+          if (log) {
+            bar.stop()
+            console.log(file.path, 'uploaded') // eslint-disable-line no-console
+          }
+
           resolve()
         }
       })
-    })
+    }).catch(error => {
+      errors.push({ file: file.path, error })
+
+      if (log) {
+        console.error(file.path, 'upload failed.', error) // eslint-disable-line no-console
+      }
+    }))
+  }
+
+  return Promise.all(tasks).then(() => {
+    if (errors.length) {
+      throw errors
+    }
   })
 }

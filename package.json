@@ -1,14 +1,9 @@
 {
   "name": "cosup",
   "version": "0.1.2",
-  "description": "腾讯云对象存储(COS)前端资源上传命令行工具",
+  "description": "腾讯云对象存储（COS）资源上传命令行工具",
   "main": "index.js",
-  "bin": {
-    "cosup": "cosup"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "bin": "cosup",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jiangfengming/cosup.git"
@@ -24,24 +19,22 @@
     "url": "https://github.com/jiangfengming/cosup/issues"
   },
   "homepage": "https://github.com/jiangfengming/cosup#readme",
+  "dependencies": {
+    "cli-progress": "^2.1.1",
+    "cos-nodejs-sdk-v5": "^2.5.9",
+    "glob": "^7.1.4",
+    "minimatch": "^3.0.4",
+    "readdirp": "^3.0.2",
+    "yargs": "^13.2.4"
+  },
   "devDependencies": {
-    "babel-eslint": "^10.0.1",
     "eslint": "^5.16.0",
-    "eslint-config-enough": "^0.3.4"
+    "eslint-config-enough": "^0.3.5"
   },
   "eslintConfig": {
-    "parser": "babel-eslint",
     "extends": "enough",
     "env": {
       "node": true
     }
-  },
-  "dependencies": {
-    "cli-progress": "^2.1.1",
-    "cos-nodejs-sdk-v5": "^2.5.7",
-    "glob": "^7.1.3",
-    "minimatch": "^3.0.4",
-    "readdirp": "^2.2.1",
-    "yargs": "^13.2.2"
   }
 }

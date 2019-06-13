@@ -1,5 +1,5 @@
 .vscode
-config.test.json
+test
 
 # package lock files
 package-lock.json

@@ -2,7 +2,7 @@
 
 const cosup = require('.')
 const argv = require('yargs')
-  .command('$0 [src] [dest]', 'Upload files in [src] directory to [dest] directory on COS.', args => args
+  .command('$0 [src] [dest]', 'Upload files in [src] directory or single file to [dest] directory on COS.', args => args
     .option('secret-id', {
       alias: 'u',
       describe: 'SecretId',
@@ -24,7 +24,7 @@ const argv = require('yargs')
       demandOption: true
     })
     .positional('src', {
-      describe: 'The source directory on your machine',
+      describe: 'The source directory/file on your machine',
       demandOption: true
     })
     .positional('dest', {
@@ -80,6 +80,7 @@ const argv = require('yargs')
   .alias('help', 'h')
   .argv
 
-cosup(argv).catch(() => {
+cosup(argv).catch(e => {
   process.exitCode = 1
+  console.error(e) // eslint-disable-line no-console
 })

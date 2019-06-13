@@ -27,7 +27,7 @@ npm i cosup
 ```
 cosup [src] [dest]
 
-Upload files in [src] directory to [dest] directory on COS.
+Upload files in [src] directory or single file to [dest] directory on COS.
 
 Options:
   --help, -h        Show help                                          [boolean]
@@ -106,10 +106,10 @@ cosup({
 ```
 
 ### src
-`String`。源文件夹
+`String`。源文件夹或文件
 
 ### dest
-`String`。COS目标文件夹
+`String`。COS 目标文件夹
 
 ### secretId
 `String`。开发者拥有的项目身份识别 ID，用以身份认证
