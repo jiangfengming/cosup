@@ -29,7 +29,7 @@ module.exports = async({
   if (stats.isDirectory()) {
     const filter = ignore && ignore.length
       ? file => !ignore.some(pattern => minimatch(file.path, pattern, { matchBase: true }))
-      : undefined
+      : () => true
 
     files = await readdirp.promise(src, { fileFilter: filter, directoryFilter: filter, alwaysStat: true })
   } else if (stats.isFile()) {
