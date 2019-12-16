@@ -14,6 +14,7 @@ module.exports = async({
   region,
   bucket,
   maxAge = ['*.html', 10, '*', 2592000],
+  contentType,
   ignore,
   parallel = 10,
   log
@@ -69,6 +70,19 @@ module.exports = async({
       }
     }
 
+    let ContentType
+
+    if (contentType) {
+      for (let i = 0; i < contentType.length; i += 2) {
+        const pattern = contentType[i]
+
+        if (minimatch(file.path, pattern, { matchBase: true })) {
+          ContentType = contentType[i + 1]
+          break
+        }
+      }
+    }
+
     let onProgress, bar
 
     if (log) {
@@ -94,6 +108,7 @@ module.exports = async({
         Body: fs.createReadStream(file.fullPath),
         ContentLength: file.stats.size,
         CacheControl,
+        ContentType,
         onProgress
       }, e => {
         if (e) {

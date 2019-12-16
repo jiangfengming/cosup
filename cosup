@@ -53,6 +53,12 @@ const argv = require('yargs')
       nargs: 2
     })
     .default('max-age', ['*.html', 10, '*', 2592000], '-e "*.html" 10 -e "*" 2592000')
+    .option('content-type', {
+      alias: 't',
+      describe: 'set Content-Type of a file pattern. e.g. -t apple-app-site-association application/json -t "*.foo" text/plain',
+      type: 'array',
+      nargs: 2
+    })
     .option('ignore', {
       alias: 'i',
       describe: 'Don\' upload the files which matches the glob pattern. e.g. -i "*.sh" -i ".gitignore"',
