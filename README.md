@@ -1,10 +1,6 @@
 # cosup
 腾讯云对象存储（COS）资源上传命令行工具。
 
-## 目的
-1. 在 CI 任务里使用官方 python 版命令行工具（COSCMD）需要在基础 node docker 镜像上安装 pip，再使用 pip 安装 COSCMD，太麻烦。
-2. 我需要在上传时根据不同文件类型设置不同的 `max-age`。COSCMD 无法满足需求。
-
 ## 命令行
 全局安装：
 ```
@@ -30,19 +26,22 @@ cosup [src] [dest]
 Upload files in [src] directory or single file to [dest] directory on COS.
 
 Options:
-  --help, -h        Show help                                          [boolean]
-  --version, -v     Show version number                                [boolean]
-  --config, -c      Path to JSON config file
-  --secret-id, -u   SecretId                                          [required]
-  --secret-key, -p  SecretKey                                         [required]
-  --region, -r      Region                                            [required]
-  --bucket, -b      Bucket                                            [required]
-  --max-age, -e     Cache-Control: max-age header
+  --help, -h          Show help                                        [boolean]
+  --version, -v       Show version number                              [boolean]
+  --config, -c        Path to JSON config file
+  --secret-id, -u     SecretId                                        [required]
+  --secret-key, -p    SecretKey                                       [required]
+  --region, -r        Region                                          [required]
+  --bucket, -b        Bucket                                          [required]
+  --max-age, -e       Cache-Control: max-age header
                                 [array] [default: -e "*.html" 10 -e "*" 2592000]
-  --ignore, -i      Don' upload the files which matches the glob pattern. e.g.
-                    -i "*.sh" -i ".gitignore"                            [array]
-  --parallel, -n    Parallel upload limit                 [number] [default: 10]
-  --log, -l         Output logs to console             [boolean] [default: true]
+  --content-type, -t  set Content-Type of a file pattern. e.g. -t
+                      apple-app-site-association application/json -t "*.foo"
+                      text/plain                                         [array]
+  --ignore, -i        Don' upload the files which matches the glob pattern. e.g.
+                      -i "*.sh" -i ".gitignore"                          [array]
+  --parallel, -n      Parallel upload limit               [number] [default: 10]
+  --log, -l           Output logs to console           [boolean] [default: true]
 
 Examples:
   cosup -u xxx -p xxx -r ap-shanghai -b test-123456 dist /
@@ -131,6 +130,9 @@ cosup({
 pattern 写法参考 [glob](https://github.com/isaacs/node-glob#glob-primer)。
 
 默认值：`['*.html', 10, '*', 2592000]`
+
+### contentType
+`Array`。文件的 `Content-Type` 头信息。格式：`[pattern, type, pattern, type, ...]`。
 
 ### ignore
 `Array`。不上传匹配的的文件。比如：`['*.sh', '.gitignore']`
